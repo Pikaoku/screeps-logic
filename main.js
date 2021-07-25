@@ -1,45 +1,75 @@
-import roleBuilder from './role.builder'
-import roleHarvester from './role.harvester'
-import roleUpgrader from './role.upgrader'
+const typeWorker = require('./type.worker');
 
-const ROLE_HARVESTER = 'harvester'
-const ROLE_BUILDER = 'builder'
-const ROLE_UPGRADER = 'upgarder'
-const ROLES = [ROLE_HARVESTER, ROLE_BUILDER, ROLE_UPGRADER]
+const TYPE_WORKER = 'worker';
+const TYPE_COMBAT = 'combat';
+
+const ROLE_HARVESTER = 'harvester';
+const ROLE_BUILDER = 'builder';
+const ROLE_UPGRADER = 'upgrader';
+const ROLES = [ROLE_HARVESTER, ROLE_BUILDER, ROLE_UPGRADER];
+
+const ROLE_TARGETS = {
+  [ROLE_HARVESTER]: 2,
+  [ROLE_BUILDER]: 2,
+  [ROLE_UPGRADER]: 1,
+};
+
+const TARGET_SPAWNS = 3;
 
 function areRole(role) {
-    return (creep) => creep.memory.role === role
+  return (creep) => creep.memory.role === role;
 }
 
 module.exports.loop = function () {
-    const spawner = Game.spawns['Spawn1']
+  const spawner = Game.spawns['Spawn1'];
+  const room = spawner.room;
+  const room_sources = room.find(FIND_SOURCES);
 
-    /** @type {Creep[]} creeps */
-    const creeps = Game.creeps
-        .map((name) => Game.creeps[name])
-        .filter((x) => !!x)
+  /** @type {Creep[]} creeps */
+  const creeps = Object.keys(Game.creeps)
+    .filter((x) => !!x)
+    .map((name) => Game.creeps[name]);
 
-    ROLES.forEach((role_name) => {
-        if (!creeps.some(areRole(role_name))) {
-            spawner.spawnCreep([WORK, MOVE], `${role_name}_1`, {
-                role: role_name,
-            })
+  const namesForRoles = ROLES.map((role_name) =>
+    [...Array(ROLE_TARGETS[role_name])].map(
+      (_, i) => '' + role_name + '_' + (i + 1)
+    )
+  ).reduce((acc, cur) => [...acc, ...cur], []);
+  const spawnQueue = namesForRoles.filter(
+    (possibleName) => !Game.creeps[possibleName]
+  );
+  if (spawnQueue.length) {
+    spawner.spawnCreep([WORK, MOVE, CARRY, MOVE], spawnQueue[0], {
+      memory: { role: spawnQueue[0].split('_')[0], type: 'worker' },
+    });
+  }
+
+  ROLES.forEach((role_name) => {
+    const creepsOfRole = creeps.filter(areRole(role_name)).length;
+    if (creepsOfRole < TARGET_SPAWNS) {
+      spawner.spawnCreep(
+        [WORK, MOVE, CARRY, MOVE],
+        `${role_name}_${creepsOfRole + 1}`,
+        {
+          memory: {
+            role: role_name,
+            type: TYPE_WORKER,
+          },
         }
-    })
+      );
+    }
+  });
 
-    creeps
-        .filter((c) => c.memory.role !== undefined)
-        .forEach((creep) => {
-            switch (creep.memory.role) {
-                case ROLE_HARVESTER:
-                    roleHarvester.run(creep)
-                    break
-                case ROLE_UPGRADER:
-                    roleUpgrader.run(creep)
-                    break
-                case ROLE_BUILDER:
-                    roleBuilder.run(creep)
-                    break
-            }
-        })
-}
+  creeps.forEach((c) => (c.memory.type = TYPE_WORKER));
+
+  creeps.forEach((creep) => {
+    switch (creep.memory.type) {
+      case TYPE_WORKER:
+        typeWorker.run(creep);
+        break;
+      case TYPE_COMBAT:
+        console.log('what are you doing, idiot?');
+        break;
+    }
+  });
+};

@@ -1,26 +1,33 @@
-import roleBuilder from './role.builder'
-import act_or_approach from './utils/act_or_approach'
+const roleBuilder = require('./role.builder');
 
-/** @param {Creep} creep **/
-function roleUpgrader(creep, targetControllerLevel = 1) {
-    const creepIsEmpty = creep.store[RESOURCE_ENERGY] == 0
-    const creepIsFull = creep.store.getFreeCapacity() == 0
+module.exports = {
+  /** @param {Creep} creep **/
+  run: function (creep) {
+    const creepIsEmpty = creep.store[RESOURCE_ENERGY] < 20;
+    const creepIsFull = creep.store.getFreeCapacity() == 0;
 
-    const controller = creep.room.controller
+    const controller = creep.room.controller;
 
-    const canUpgrade = controller.level < targetControllerLevel
+    const canUpgrade = controller.level < 2;
+    const canTick = controller.ticksToDowngrade < 2000;
 
-    if (controller.ticksToDowngrade < 50) {
-        act_or_approach(creep, controller, creep.upgradeController)
-        creep.say('🛠 ticking the controller')
+    if (canTick && !creepIsEmpty) {
+      creep.upgradeController(controller) !== ERR_NOT_IN_RANGE ||
+        creep.moveTo(controller);
+      return creep.say('🛠');
     }
 
     if (canUpgrade && !creepIsEmpty) {
-        act_or_approach(creep, controller, creep.upgradeController)
-        creep.say('🔼 upgrading the controller')
+      creep.upgradeController(controller) !== ERR_NOT_IN_RANGE ||
+        creep.moveTo(controller);
+      return creep.say('🔼');
     }
 
-    return roleBuilder(creep)
-}
+    if (!canUpgrade && !creepIsEmpty) {
+      const spawn = creep.room.find(FIND_MY_SPAWNS)[0];
+      creep.transfer(spawn) !== ERR_NOT_IN_RANGE || creep.moveTo(spawn);
+    }
 
-export default roleUpgrader
+    return roleBuilder.run(creep);
+  },
+};
