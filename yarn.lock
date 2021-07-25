@@ -2,3 +2,7 @@
 # yarn lockfile v1
 
 
+"@types/screeps@^3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@types/screeps/-/screeps-3.2.3.tgz#85a89ee286f8c35bb404214fb2e21c2eb3025b26"
+  integrity sha512-XJwbYyvGGu+nuxxGzTFv9dDO4+4XK+w7fi6k2l+mIvN2bZ9m0jNJPt3qIB4Z1OUc+lZnM0YYjXkTwqZQCZtvZw==
