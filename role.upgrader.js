@@ -24,8 +24,15 @@ module.exports = {
     }
 
     if (!canUpgrade && !creepIsEmpty) {
-      const spawn = creep.room.find(FIND_MY_SPAWNS)[0];
-      creep.transfer(spawn) !== ERR_NOT_IN_RANGE || creep.moveTo(spawn);
+      const targets = creep.room.find(FIND_STRUCTURES, {
+        filter: (s) =>
+          (s.structureType == STRUCTURE_SPAWN ||
+            s.structureType == STRUCTURE_EXTENSION) &&
+          s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+      });
+      creep.transfer(targets[0], RESOURCE_ENERGY) !== ERR_NOT_IN_RANGE ||
+        creep.moveTo(targets[0]);
+      return creep.say('⚡');
     }
 
     return roleBuilder.run(creep);
