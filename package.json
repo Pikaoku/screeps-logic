@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@types/screeps": "^3.2.3"
+    "@types/screeps": "^3.2.3",
+    "rollup": "^2.55.0"
   }
 }
