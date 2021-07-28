@@ -1,38 +1,41 @@
-const instance = null;
+/** @module RoomManager */
 
-module.exports = class RoomManager {
-  _rooms = [];
-  _sources = [];
+const Manager = require('./Manager');
 
-  static get() {
-    if (!instance) {
-      instance = new RoomManager();
-    }
-    return instance;
-  }
-
+module.exports = {
   /**
-   * @param {Room} room
-   * @returns {Source[]}
-   * */
-  static getSources(room) {
-    return room.find(FIND_SOURCES);
-  }
+   *
+   */
+  RoomManager: class RoomManager extends Manager {
+    _rooms = [];
+    _sources = [];
 
-  constructor() {
-    const rooms = [];
-    const sources = [];
-
-    for (const ref in Game.rooms) {
-      const room = Game.rooms[ref];
-      rooms.push(room);
-      sources.push(...RoomManager.getSources(room));
+    /**
+     * @param {Room} room
+     * @returns {Source[]}
+     * */
+    static findSources(room) {
+      return room.find(FIND_SOURCES);
     }
-    this._rooms = rooms;
-    this._sources = sources;
-  }
 
-  getRooms() {
-    return [...this._rooms];
-  }
+    constructor() {
+      const rooms = [];
+      const sources = [];
+      for (const ref in Game.rooms) {
+        const room = Game.rooms[ref];
+        rooms.push(room);
+        sources.push(...RoomManager.findSources(room));
+      }
+      this._rooms = rooms;
+      this._sources = sources;
+    }
+
+    getRooms() {
+      return [...this._rooms];
+    }
+
+    getSources() {
+      return [...this._sources];
+    }
+  },
 };
